@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tantangan Basket Kimia</title>
+    <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        .question-section.active {
+            transform: translateY(0);
+        }
+
+        .topic-badge {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        .instruction {
+            color: #666;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            margin-top: 200px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 15px;
+        }
+
+        .score-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .court {
+            flex: 1;
+            position: relative;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98FB98 100%);
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .basketball-court {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            height: 500px;
+            background: #8B4513;
+            border-radius: 20px;
+            border: 4px solid #654321;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .student-player {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+        }
+
+        .student-body {
+            width: 80px;
+            height: 120px;
+            position: relative;
+        }
+
+        .student-head {
+            width: 40px;
+            height: 40px;
+            background: #FDBCB4;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 2px solid #E8A598;
+        }
+
+        .student-head::before {
+            display: none;
+        }
+
+        .student-face {
+            display: none;
+        }
+
+        .student-torso {
+            width: 50px;
+            height: 60px;
+            background: #FFFFFF;
+            position: absolute;
+            top: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 10px;
+            border: 2px solid #E0E0E0;
+        }
+
+        .student-tie {
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 25px;
+            background: #DC143C;
+            clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
+        }
+
+        .student-collar {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 35px;
+            height: 15px;
+            border: 2px solid #E0E0E0;
+            border-bottom: none;
+            border-radius: 15px 15px 0 0;
+            background: transparent;
+        }
+
+        .student-pocket {
+            position: absolute;
+            top: 20px;
+            left: 8px;
+            width: 12px;
+            height: 8px;
+            border: 1px solid #E0E0E0;
+            border-radius: 2px;
+        }
+
+        .student-arm {
+            width: 15px;
+            height: 40px;
+            background: #FDBCB4;
+            position: absolute;
+            top: 40px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .student-arm.left {
+            left: 10px;
+            transform: rotate(-20deg);
+        }
+
+        .student-arm.right {
+            right: 10px;
+            transform: rotate(20deg);
+        }
+
+        .student-leg {
+            width: 18px;
+            height: 35px;
+            background: #4A4A4A;
+            position: absolute;
+            bottom: 0;
+            border-radius: 5px;
+        }
+
+        .student-leg.left {
+            left: 25px;
+        }
+
+        .student-leg.right {
+            right: 25px;
+        }
+
+        .student-leg::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 8px;
+            background: #1A1A1A;
+            border-radius: 10px;
+        }
+
+        .throwing .student-arm.right {
+            transform: rotate(-45deg) translateY(-10px);
+        }
+
+        .throwing .student-arm.left {
+            transform: rotate(45deg) translateY(-5px);
+        }
+
+        .fire-aura {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            background: radial-gradient(circle, 
+                rgba(255, 69, 0, 0.3) 0%, 
+                rgba(255, 140, 0, 0.2) 30%, 
+                rgba(255, 215, 0, 0.1) 60%, 
+                transparent 100%);
+            animation: fireFlicker 0.5s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        .fire-aura.blue {
+            background: radial-gradient(circle, 
+                rgba(0, 100, 255, 0.3) 0%, 
+                rgba(0, 150, 255, 0.2) 30%, 
+                rgba(100, 200, 255, 0.1) 60%, 
+                transparent 100%);
+        }
+
+        .fire-aura.purple {
+            background: radial-gradient(circle, 
+                rgba(138, 43, 226, 0.3) 0%, 
+                rgba(148, 0, 211, 0.2) 30%, 
+                rgba(186, 85, 211, 0.1) 60%, 
+                transparent 100%);
+        }
+
+        .fire-aura::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border-radius: 50%;
+            background: radial-gradient(circle, 
+                rgba(255, 0, 0, 0.2) 0%, 
+                rgba(255, 69, 0, 0.15) 40%, 
+                transparent 70%);
+            animation: fireFlicker 0.3s ease-in-out infinite alternate-reverse;
+        }
+
+        .fire-aura.blue::before {
+            background: radial-gradient(circle, 
+                rgba(0, 50, 255, 0.2) 0%, 
+                rgba(0, 100, 255, 0.15) 40%, 
+                transparent 70%);
+        }
+
+        .fire-aura.purple::before {
+            background: radial-gradient(circle, 
+                rgba(100, 0, 200, 0.2) 0%, 
+                rgba(138, 43, 226, 0.15) 40%, 
+                transparent 70%);
+        }
+
+        .basketball-fire {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border-radius: 50%;
+            background: radial-gradient(circle, 
+                rgba(255, 69, 0, 0.4) 0%, 
+                rgba(255, 140, 0, 0.3) 40%, 
+                rgba(255, 215, 0, 0.2) 70%, 
+                transparent 100%);
+            animation: fireFlicker 0.4s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes fireFlicker {
+            0% {
+                transform: scale(1) rotate(0deg);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1.1) rotate(2deg);
+                opacity: 1;
+            }
+        }
+
+        .question-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-100%);
+            transition: transform 0.5s ease, opacity 0.3s ease;
+        }
+
+        .question-section.fade-out {
+            opacity: 0;
+        }
+
+        .hoop-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .hoop-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .hoop {
+            position: relative;
+            width: 80px;
+            height: 60px;
+            margin-bottom: 10px;
+        }
+
+        .rim {
+            width: 80px;
+            height: 8px;
+            background: #FF6B35;
+            border-radius: 40px;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .net {
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            width: 60px;
+            height: 40px;
+            border-left: 2px solid white;
+            border-right: 2px solid white;
+            border-bottom: 2px solid white;
+            border-radius: 0 0 30px 30px;
+        }
+
+        .net::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 40px;
+            background: white;
+        }
+
+        .backboard {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 3px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .pole {
+            width: 6px;
+            height: 200px;
+            background: #666;
+            margin: 0 auto;
+            border-radius: 3px;
+        }
+
+        .answer-label {
+            position: absolute;
+            top: -120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            white-space: pre-wrap;
+            max-width: 250px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            line-height: 1.3;
+            z-index: 10;
+        }
+
+        .question-section.active ~ .court .answer-label {
+            opacity: 1;
+        }
+
+        .basketball {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%) translateX(15px);
+            width: 40px;
+            height: 40px;
+            background: #FF8C00;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .basketball::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #8B4513;
+            transform: translateY(-50%);
+        }
+
+        .basketball::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #8B4513;
+            transform: translateX(-50%);
+        }
+
+        .basketball.shooting {
+            transition: all 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .controls {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .result-message.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .result-message.correct {
+            border-left: 5px solid #4CAF50;
+        }
+
+        .result-message.incorrect {
+            border-left: 5px solid #f44336;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            transition: opacity 0.5s ease;
+        }
+
+        .login-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .login-form {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .final-results {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .final-results h2 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 1.1rem;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .result-value {
+            color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .basketball-court {
+                height: 400px;
+                padding: 15px;
+            }
+            
+            .hoop {
+                width: 60px;
+                height: 45px;
+            }
+            
+            .rim {
+                width: 60px;
+            }
+            
+            .backboard {
+                width: 80px;
+                height: 50px;
+            }
+            
+            .basketball {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .question-text {
+                font-size: 1.2rem;
+            }
+
+            .answer-label {
+                font-size: 0.8rem;
+                padding: 8px 12px;
+                max-width: 150px;
+            }
+
+            .student-body {
+                width: 60px;
+                height: 90px;
+            }
+
+            .student-head {
+                width: 30px;
+                height: 30px;
+            }
+
+            .student-torso {
+                width: 40px;
+                height: 45px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-screen" id="login-screen">
+        <div class="login-form">
+            <h1 class="login-title">🏀 Tantangan Basket Kimia</h1>
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="student-name">Nama:</label>
+                    <input type="text" id="student-name" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="student-class">Kelas:</label>
+                    <input type="text" id="student-class" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="student-number">No. Absen:</label>
+                    <input type="number" id="student-number" class="form-input" required>
+                </div>
+                <button type="submit" class="login-btn">Mulai Permainan</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="question-section" id="question-section">
+            <div class="topic-badge" id="topic-badge">Mekanika Kuantum</div>
+            <div class="question-text" id="question-text">Memuat soal...</div>
+            <div class="instruction">🏀 Klik pada ring basket untuk melempar jawaban Anda!</div>
+        </div>
+
+        <div class="header">
+            <h1 class="title">🏀 Tantangan Basket Kimia</h1>
+            <div class="score-board">
+                <div class="score-item">Skor: <span id="score">0</span></div>
+                <div class="score-item">Soal: <span id="current-question">1</span>/15</div>
+                <div class="score-item">Streak: <span id="streak">0</span> 🔥</div>
+                <div class="score-item">Topik: <span id="current-topic">Mekanika Kuantum</span></div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 6.67%"></div>
+            </div>
+        </div>
+
+        <div class="court">
+            <div class="basketball-court">
+                <div class="hoop-container" data-answer="A">
+                    <div class="answer-label" id="answer-A">Jawaban A</div>
+                    <div class="hoop">
+                        <div class="backboard"></div>
+                        <div class="rim"></div>
+                        <div class="net"></div>
+                    </div>
+                    <div class="pole"></div>
+                </div>
+
+                <div class="hoop-container" data-answer="B">
+                    <div class="answer-label" id="answer-B">Jawaban B</div>
+                    <div class="hoop">
+                        <div class="backboard"></div>
+                        <div class="rim"></div>
+                        <div class="net"></div>
+                    </div>
+                    <div class="pole"></div>
+                </div>
+
+                <div class="hoop-container" data-answer="C">
+                    <div class="answer-label" id="answer-C">Jawaban C</div>
+                    <div class="hoop">
+                        <div class="backboard"></div>
+                        <div class="rim"></div>
+                        <div class="net"></div>
+                    </div>
+                    <div class="pole"></div>
+                </div>
+
+                <div class="hoop-container" data-answer="D">
+                    <div class="answer-label" id="answer-D">Jawaban D</div>
+                    <div class="hoop">
+                        <div class="backboard"></div>
+                        <div class="rim"></div>
+                        <div class="net"></div>
+                    </div>
+                    <div class="pole"></div>
+                </div>
+
+                <div class="student-player" id="student-player">
+                    <div class="student-body">
+                        <div class="student-head">
+                            <div class="student-face"></div>
+                        </div>
+                        <div class="student-torso">
+                            <div class="student-collar"></div>
+                            <div class="student-tie"></div>
+                            <div class="student-pocket"></div>
+                        </div>
+                        <div class="student-arm left"></div>
+                        <div class="student-arm right"></div>
+                        <div class="student-leg left"></div>
+                        <div class="student-leg right"></div>
+                    </div>
+                </div>
+
+                <div class="basketball" id="basketball"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="start-btn">Mulai Permainan</button>
+            <button class="btn" id="next-btn" style="display: none;">Soal Berikutnya</button>
+            <button class="btn" id="restart-btn" style="display: none;">Main Lagi</button>
+        </div>
+    </div>
+
+    <div class="result-message" id="result-message">
+        <h3 id="result-title">Benar!</h3>
+        <p id="result-text">Bagus! Jawaban Anda benar.</p>
+    </div>
+
+    <script>
+        const questions = {
+            "Mekanika Kuantum": [
+                {
+                    question: "Apa prinsip yang menyatakan bahwa kita tidak dapat mengetahui secara bersamaan posisi dan momentum elektron yang tepat?",
+                    answers: {
+                        A: "Prinsip Eksklusi Pauli",
+                        B: "Prinsip Ketidakpastian Heisenberg",
+                        C: "Prinsip Aufbau",
+                        D: "Aturan Hund"
+                    },
+                    correct: "B"
+                },
+                {
+                    question: "Berapa jumlah maksimum elektron yang dapat menempati satu orbital?",
+                    answers: {
+                        A: "2 elektron",
+                        B: "1 elektron",
+                        C: "4 elektron",
+                        D: "8 elektron"
+                    },
+                    correct: "A"
+                },
+                {
+                    question: "Bilangan kuantum mana yang menggambarkan bentuk orbital?",
+                    answers: {
+                        A: "Bilangan kuantum utama (n)",
+                        B: "Bilangan kuantum magnetik (ml)",
+                        C: "Bilangan kuantum azimut (l)",
+                        D: "Bilangan kuantum spin (ms)"
+                    },
+                    correct: "C"
+                }
+            ],
+            "Ion": [
+                {
+                    question: "Jenis ion apa yang terbentuk ketika atom kehilangan elektron?",
+                    answers: {
+                        A: "Anion",
+                        B: "Ion netral",
+                        C: "Ion kompleks",
+                        D: "Kation"
+                    },
+                    correct: "D"
+                },
+                {
+                    question: "Unsur mana yang umumnya membentuk ion +2?",
+                    answers: {
+                        A: "Magnesium (Mg)",
+                        B: "Klorin (Cl)",
+                        C: "Natrium (Na)",
+                        D: "Fluorin (F)"
+                    },
+                    correct: "A"
+                },
+                {
+                    question: "Berapa muatan pada ion sulfat (SO₄)?",
+                    answers: {
+                        A: "Muatan -1",
+                        B: "Muatan +1",
+                        C: "Muatan -2",
+                        D: "Muatan +2"
+                    },
+                    correct: "C"
+                }
+            ],
+            "Struktur Atom": [
+                {
+                    question: "Partikel apa yang menentukan nomor atom suatu unsur?",
+                    answers: {
+                        A: "Neutron",
+                        B: "Proton",
+                        C: "Elektron",
+                        D: "Foton"
+                    },
+                    correct: "B"
+                },
+                {
+                    question: "Di mana sebagian besar massa atom terkonsentrasi?",
+                    answers: {
+                        A: "Kulit elektron",
+                        B: "Kulit valensi",
+                        C: "Di seluruh atom",
+                        D: "Inti atom"
+                    },
+                    correct: "D"
+                },
+                {
+                    question: "Apa yang dimaksud dengan isotop?",
+                    answers: {
+                        A: "Atom dengan proton sama, neutron berbeda",
+                        B: "Atom dengan neutron sama, proton berbeda",
+                        C: "Atom dengan proton sama, elektron berbeda",
+                        D: "Atom dengan nomor massa sama"
+                    },
+                    correct: "A"
+                }
+            ],
+            "Peralatan Laboratorium": [
+                {
+                    question: "Alat mana yang digunakan untuk mengukur volume cairan dengan tepat?",
+                    answers: {
+                        A: "Gelas kimia (beaker)",
+                        B: "Labu Erlenmeyer",
+                        C: "Tabung reaksi",
+                        D: "Buret"
+                    },
+                    correct: "D"
+                },
+                {
+                    question: "Untuk apa krus terutama digunakan?",
+                    answers: {
+                        A: "Pemanasan suhu tinggi",
+                        B: "Mencampur larutan",
+                        C: "Mengukur volume",
+                        D: "Menyimpan bahan kimia"
+                    },
+                    correct: "A"
+                },
+                {
+                    question: "Peralatan mana yang penting untuk pengukuran massa yang akurat?",
+                    answers: {
+                        A: "Gelas ukur",
+                        B: "Neraca analitik",
+                        C: "Termometer",
+                        D: "pH meter"
+                    },
+                    correct: "B"
+                }
+            ],
+            "Simbol Laboratorium": [
+                {
+                    question: "Apa yang ditunjukkan oleh simbol api pada label bahan kimia?",
+                    answers: {
+                        A: "Zat mudah terbakar",
+                        B: "Zat beracun",
+                        C: "Zat korosif",
+                        D: "Zat radioaktif"
+                    },
+                    correct: "A"
+                },
+                {
+                    question: "Apa yang diwakili oleh simbol tengkorak dan tulang bersilang?",
+                    answers: {
+                        A: "Mudah terbakar",
+                        B: "Korosif",
+                        C: "Eksplosif",
+                        D: "Beracun/Berbahaya"
+                    },
+                    correct: "D"
+                },
+                {
+                    question: "Peralatan keselamatan apa yang diwakili oleh simbol pencuci mata?",
+                    answers: {
+                        A: "Kacamata pengaman",
+                        B: "Stasiun pencuci mata",
+                        C: "Shower darurat",
+                        D: "Pelindung wajah"
+                    },
+                    correct: "B"
+                }
+            ]
+        };
+
+        let currentQuestionIndex = 0;
+        let currentTopicIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let maxStreak = 0;
+        let correctAnswers = 0;
+        let gameStarted = false;
+        let questionAnswered = false;
+        let questionStartTime = 0;
+        let studentData = {
+            name: '',
+            class: '',
+            number: ''
+        };
+
+        const topics = Object.keys(questions);
+        const totalQuestions = topics.length * 3;
+
+        const elements = {
+            loginScreen: document.getElementById('login-screen'),
+            loginForm: document.getElementById('login-form'),
+            questionSection: document.getElementById('question-section'),
+            questionText: document.getElementById('question-text'),
+            topicBadge: document.getElementById('topic-badge'),
+            basketball: document.getElementById('basketball'),
+            studentPlayer: document.getElementById('student-player'),
+            startBtn: document.getElementById('start-btn'),
+            nextBtn: document.getElementById('next-btn'),
+            restartBtn: document.getElementById('restart-btn'),
+            resultMessage: document.getElementById('result-message'),
+            resultTitle: document.getElementById('result-title'),
+            resultText: document.getElementById('result-text'),
+            scoreDisplay: document.getElementById('score'),
+            streakDisplay: document.getElementById('streak'),
+            currentQuestionDisplay: document.getElementById('current-question'),
+            currentTopicDisplay: document.getElementById('current-topic'),
+            progressFill: document.getElementById('progress-fill')
+        };
+
+        function getCurrentQuestion() {
+            const topic = topics[currentTopicIndex];
+            return questions[topic][currentQuestionIndex];
+        }
+
+        function displayQuestion() {
+            const question = getCurrentQuestion();
+            const topic = topics[currentTopicIndex];
+            
+            elements.questionText.textContent = question.question;
+            elements.topicBadge.textContent = topic;
+            elements.currentTopicDisplay.textContent = topic;
+            
+            // Update answer labels
+            Object.keys(question.answers).forEach(key => {
+                document.getElementById(`answer-${key}`).textContent = question.answers[key];
+            });
+            
+            elements.questionSection.classList.remove('fade-out');
+            elements.questionSection.classList.add('active');
+            questionAnswered = false;
+            questionStartTime = Date.now();
+            
+            // Update fire aura based on streak
+            updateFireAura();
+        }
+
+        function hideQuestion() {
+            elements.questionSection.classList.add('fade-out');
+            setTimeout(() => {
+                elements.questionSection.classList.remove('active', 'fade-out');
+            }, 300);
+        }
+
+        function updateFireAura() {
+            const existingAura = elements.studentPlayer.querySelector('.fire-aura');
+            if (existingAura) {
+                existingAura.remove();
+            }
+            
+            if (streak > 0) {
+                const fireAura = document.createElement('div');
+                let auraClass = 'fire-aura';
+                
+                if (streak >= 10) {
+                    auraClass += ' purple';
+                } else if (streak >= 5) {
+                    auraClass += ' blue';
+                }
+                
+                fireAura.className = auraClass;
+                elements.studentPlayer.appendChild(fireAura);
+            }
+        }
+
+        function shootBasketball(targetHoop, isCorrect) {
+            const basketball = elements.basketball;
+            const student = elements.studentPlayer;
+            const hoopRect = targetHoop.querySelector('.rim').getBoundingClientRect();
+            const basketballRect = basketball.getBoundingClientRect();
+            const courtRect = document.querySelector('.basketball-court').getBoundingClientRect();
+            
+            // Add throwing animation to student
+            student.classList.add('throwing');
+            
+            // Add fire effect to basketball if on streak
+            if (streak > 0) {
+                const basketballFire = document.createElement('div');
+                basketballFire.className = 'basketball-fire';
+                basketball.appendChild(basketballFire);
+            }
+            
+            // Calculate relative positions
+            const endX = hoopRect.left - courtRect.left + hoopRect.width / 2;
+            const endY = hoopRect.top - courtRect.top + hoopRect.height / 2;
+            
+            basketball.classList.add('shooting');
+            basketball.style.left = `${endX - 20}px`;
+            basketball.style.bottom = `${courtRect.height - endY - 20}px`;
+            basketball.style.transform = 'rotate(720deg) scale(1.2)';
+            
+            setTimeout(() => {
+                showResult(isCorrect);
+                basketball.classList.remove('shooting');
+                basketball.style.left = '50%';
+                basketball.style.bottom = '90px';
+                basketball.style.transform = 'translateX(-50%) translateX(15px)';
+                student.classList.remove('throwing');
+                
+                // Remove fire effect from basketball
+                const basketballFire = basketball.querySelector('.basketball-fire');
+                if (basketballFire) {
+                    basketballFire.remove();
+                }
+            }, 1200);
+        }
+
+        function showResult(isCorrect) {
+            const question = getCurrentQuestion();
+            const answerTime = Date.now() - questionStartTime;
+            const isFastAnswer = answerTime <= 20000; // 20 seconds
+            
+            if (isCorrect) {
+                correctAnswers++;
+                let points = 10;
+                if (isFastAnswer) {
+                    streak++;
+                    if (streak > maxStreak) {
+                        maxStreak = streak;
+                    }
+                    points += streak * 2; // Bonus points for streak
+                    elements.resultMessage.className = 'result-message show correct';
+                    elements.resultTitle.textContent = '🎉 Benar!';
+                    elements.resultText.textContent = `Bagus sekali! Anda mendapat ${points} poin. Streak: ${streak} 🔥`;
+                } else {
+                    streak = 0;
+                    elements.resultMessage.className = 'result-message show correct';
+                    elements.resultTitle.textContent = '✅ Benar!';
+                    elements.resultText.textContent = `Benar! Anda mendapat ${points} poin. (Terlalu lambat untuk streak)`;
+                }
+                score += points;
+            } else {
+                streak = 0;
+                elements.resultMessage.className = 'result-message show incorrect';
+                elements.resultTitle.textContent = '❌ Salah';
+                elements.resultText.textContent = `Jawaban yang benar adalah: ${question.answers[question.correct]}`;
+            }
+            
+            elements.scoreDisplay.textContent = score;
+            elements.streakDisplay.textContent = streak;
+            updateFireAura();
+            
+            setTimeout(() => {
+                elements.resultMessage.classList.remove('show');
+                hideQuestion();
+                
+                if (currentQuestionIndex === 2) {
+                    currentQuestionIndex = 0;
+                    currentTopicIndex++;
+                } else {
+                    currentQuestionIndex++;
+                }
+                
+                const totalAnswered = (currentTopicIndex * 3) + currentQuestionIndex + 1;
+                elements.currentQuestionDisplay.textContent = Math.min(totalAnswered, totalQuestions);
+                elements.progressFill.style.width = `${(Math.min(totalAnswered, totalQuestions) / totalQuestions) * 100}%`;
+                
+                if (currentTopicIndex >= topics.length) {
+                    endGame();
+                } else {
+                    // Auto transition to next question
+                    setTimeout(() => {
+                        displayQuestion();
+                    }, 500);
+                }
+            }, 2500);
+        }
+
+        function endGame() {
+            elements.nextBtn.style.display = 'none';
+            elements.restartBtn.style.display = 'inline-block';
+            
+            setTimeout(() => {
+                elements.resultMessage.innerHTML = `
+                    <div class="final-results">
+                        <h2>🏆 Hasil Akhir</h2>
+                        <div class="result-item">
+                            <span class="result-label">Nama:</span>
+                            <span class="result-value">${studentData.name}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Kelas:</span>
+                            <span class="result-value">${studentData.class}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">No. Absen:</span>
+                            <span class="result-value">${studentData.number}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Jawaban Benar:</span>
+                            <span class="result-value">${correctAnswers}/${totalQuestions}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Total Poin:</span>
+                            <span class="result-value">${score}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Streak Tertinggi:</span>
+                            <span class="result-value">${maxStreak} 🔥</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Persentase:</span>
+                            <span class="result-value">${Math.round((score / (totalQuestions * 10)) * 100)}%</span>
+                        </div>
+                        <p style="margin-top: 20px; font-size: 1.2rem; color: #667eea;">
+                            ${score >= totalQuestions * 7 ? 'Luar biasa! 🌟' : 
+                              score >= totalQuestions * 5 ? 'Bagus! 👍' : 'Terus berlatih! 📚'}
+                        </p>
+                    </div>
+                `;
+                elements.resultMessage.className = 'result-message show';
+            }, 500);
+        }
+
+        function resetGame() {
+            currentQuestionIndex = 0;
+            currentTopicIndex = 0;
+            score = 0;
+            streak = 0;
+            maxStreak = 0;
+            correctAnswers = 0;
+            gameStarted = false;
+            questionAnswered = false;
+            questionStartTime = 0;
+            
+            elements.scoreDisplay.textContent = '0';
+            elements.streakDisplay.textContent = '0';
+            elements.currentQuestionDisplay.textContent = '1';
+            elements.currentTopicDisplay.textContent = topics[0];
+            elements.progressFill.style.width = '6.67%';
+            
+            elements.startBtn.style.display = 'inline-block';
+            elements.nextBtn.style.display = 'none';
+            elements.restartBtn.style.display = 'none';
+            elements.resultMessage.classList.remove('show');
+            elements.resultMessage.innerHTML = `
+                <h3 id="result-title">Benar!</h3>
+                <p id="result-text">Bagus! Jawaban Anda benar.</p>
+            `;
+            elements.resultTitle = document.getElementById('result-title');
+            elements.resultText = document.getElementById('result-text');
+            hideQuestion();
+            updateFireAura();
+            
+            // Show login screen again
+            elements.loginScreen.classList.remove('hidden');
+        }
+
+        // Event listeners
+        elements.loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            studentData.name = document.getElementById('student-name').value;
+            studentData.class = document.getElementById('student-class').value;
+            studentData.number = document.getElementById('student-number').value;
+            
+            elements.loginScreen.classList.add('hidden');
+            gameStarted = true;
+            elements.startBtn.style.display = 'none';
+            displayQuestion();
+        });
+
+        elements.startBtn.addEventListener('click', () => {
+            gameStarted = true;
+            elements.startBtn.style.display = 'none';
+            displayQuestion();
+        });
+
+
+
+        elements.restartBtn.addEventListener('click', resetGame);
+
+        // Hoop click handlers
+        document.querySelectorAll('.hoop-container').forEach(hoop => {
+            hoop.addEventListener('click', (e) => {
+                if (!gameStarted || questionAnswered) return;
+                
+                questionAnswered = true;
+                const selectedAnswer = hoop.dataset.answer;
+                const question = getCurrentQuestion();
+                const isCorrect = selectedAnswer === question.correct;
+                
+                shootBasketball(hoop, isCorrect);
+            });
+        });
+
+        // Initialize game
+        elements.currentTopicDisplay.textContent = topics[0];
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98517e25629d7b14',t:'MTc1ODg3NjQwNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
